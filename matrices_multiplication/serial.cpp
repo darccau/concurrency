@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <vector>
 #include <thread>
 
@@ -16,9 +17,9 @@ class Matrice_factory {
 
   public:
     Matrice_factory();
-    void read_matrix();
+    std::stringstream read_matrice_description(std::string file_path);
     std::vector<struct matrice> matrices;
-    void memory_allocation (struct matrice * matrice);
+    void create_matrice(std::stringstream matrice_blueprint);
     void fill_matrice(struct matrice * matrice, int seed, int max_number_on_matrice);
     void show_matrice(struct matrice * matrice);
 };
@@ -27,19 +28,28 @@ Matrice_factory::Matrice_factory() {
 
 }
 
-/* void Matrice_factory::read_matrix(std::string matrice_path) { */
-/*   std::fstream read_matrice; */
-/*   read_matrice.open(matrice_path); */
-/*  */
-/*   if (!read_matrice) { */
-/*     std::cout << "File was not found" << std::endl; */
-/*   } */
-/*  */
-/*   read_matrice.close(); */
-/* } */
+std::stringstream Matrice_factory::read_matrice_description(std::string file_path) {
+  std::ifstream matrice_description_reader;
+  std::string matrice_description_line;
+  std::stringstream matrice_description;
 
-void Matrice_factory::memory_allocation(struct matrice * matrice) {
+  matrice_description_reader.open(file_path);
+
+  if (matrice_description_reader.is_open()) {
+    while (matrice_description_reader) {
+      std::getline(matrice_description_reader, matrice_description_line);
+      matrice_description << matrice_description_line << std::endl;
+    }
+  }
+
+  matrice_description_reader.close();
+
+  return matrice_description;
+}
+
+void Matrice_factory::create_matrice(std::stringstream matrice_blueprint) {
   int i;
+  struct matrice * matrice;
 
    matrice->matrice = new int * [matrice->row_length];
 
@@ -72,7 +82,23 @@ void Matrice_factory::show_matrice(struct matrice * matrice) {
     }
     std::cout << std::endl;
   }
+}
 
+void parse_user_input(int argc, int matrices_dimension, std::string execution_type) {
+  if (argc != 0x3) {
+    std::cout << "Insufficient command line parametters" << std::endl;
+    exit(0x1);
+  }
+
+  if ((execution_type != "S") && (execution_type != "C")) {
+    std::cout << "Execution type diferent of [C] or [S]" << std::endl;
+    exit(0x1);
+  }
+
+  if (((matrices_dimension * matrices_dimension) % 0x2) != 0x0) {
+    std::cout << " Dimension is not power by 2" << std::endl;
+    exit(0x1);
+  }
 }
 
 /*
@@ -97,38 +123,26 @@ void matrix_multiplication(std::vector<struct matrice> matrices) {
 
 int main(int argc, char const ** argv) {
 
-  struct timeval start;
-  struct timeval stop;
 
-  /* sample matrix */
-  struct matrice matrix1;
-  matrix1.row_length = 0x5;
-  matrix1.column_length = 0x3;
-
-  struct matrice matrix2;
-  matrix2.row_length = 0x2;
-  matrix2.column_length = 0x2;
+  int matrices_dimension = atoi(argv[0x1]);
+  std::string execution_type = argv[0x2];
 
 
-  /* int length = strtol(argv[0x1], NULL, 0xa); */
-
-  /* factory.matrices.push_back(matrix2); */
+  parse_user_input(argc, matrices_dimension, execution_type);
 
   Matrice_factory factory = Matrice_factory();
-  factory.memory_allocation(&matrix1);
-  factory.fill_matrice(&matrix1, 0x223, 30);
-  /* factory.show_matrice(&matrix1); */
+  /* factory.create_matrice(&matrix1); */
+  /* factory.fill_matrice(&matrix1, 0x223, 30); */
 
-  factory.memory_allocation(&matrix1);
-  factory.fill_matrice(&matrix1, 3, 30);
 
-  factory.matrices.push_back(matrix1);
-  factory.matrices.push_back(matrix2);
-  /* factory.show_matrice(factory.matrices[0]); */
+  /* factory.matrices.push_back(matrix1); */
 
-  factory.show_matrice(&factory.matrices[0]);
+  /* factory.show_matrice(&factory.matrices[0]); */
+  factory.read_matrice_description("./matrices/A4x4.txt");
 
-  matrix_multiplication(factory.matrices);
+  std::cout << execution_type << std::endl;
+
+  /* matrix_multiplication(factory.matrices); */
 
 	return 0x0;
 }
