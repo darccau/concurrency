@@ -1,87 +1,221 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <vector>
 #include <thread>
+#include <chrono>
 
-#define SEED 0xff
 
 struct matrice {
-  int row_length;
-  int column_length;
-  int ** matrice;
+  int dimension;
+  long long ** matrice;
 };
 
-class Matrice_factory {
+class Matrice_multiplication {
   private:
+    int m_dimension;
+    struct matrice * m_matrice_A;
+    struct matrice * m_matrice_B;
+    struct matrice * m_matrice_C;
+    std::stringstream m_matrice_A_path;
+    std::stringstream m_matrice_B_path;
+    std::stringstream m_matrice_C_path;
+
+    std::stringstream read_matrice(std::string file_path);
+    struct matrice * memory_allocation(struct matrice * matrice);
+    void fill_matrice(std::stringstream matrice_blueprint, struct matrice * matrice);
+    void show_matrice(struct matrice * matrice);
+    void parallel_multiplication(int rank);
+    void serial_multiplication();
+    void output_matrice();
+    void timmer();
 
   public:
-    Matrice_factory();
-    std::stringstream read_matrice_description(std::string file_path);
-    std::vector<struct matrice> matrices;
-    void create_matrice(std::stringstream matrice_blueprint);
-    void fill_matrice(struct matrice * matrice, int seed, int max_number_on_matrice);
-    void show_matrice(struct matrice * matrice);
+    Matrice_multiplication(int matrices_dimension, std::string execution_type);
+
 };
 
-Matrice_factory::Matrice_factory() {
+Matrice_multiplication::Matrice_multiplication(int matrices_dimension, std::string execution_type) {
+  m_dimension = matrices_dimension;
 
-}
+  m_matrice_A_path << "./matrices/A" << m_dimension << "x" << m_dimension << ".txt";
+  m_matrice_B_path << "./matrices/B" << m_dimension << "x" << m_dimension << ".txt";
+  m_matrice_C_path << "./matrices/C" << m_dimension << "x" << m_dimension << ".txt";
 
-std::stringstream Matrice_factory::read_matrice_description(std::string file_path) {
-  std::ifstream matrice_description_reader;
-  std::string matrice_description_line;
-  std::stringstream matrice_description;
+  m_matrice_A = memory_allocation(m_matrice_A);
+  m_matrice_B = memory_allocation(m_matrice_B);
+  m_matrice_C = memory_allocation(m_matrice_C);
 
-  matrice_description_reader.open(file_path);
+  fill_matrice(read_matrice(m_matrice_A_path.str()), m_matrice_A);
+  fill_matrice(read_matrice(m_matrice_B_path.str()), m_matrice_B);
 
-  if (matrice_description_reader.is_open()) {
-    while (matrice_description_reader) {
-      std::getline(matrice_description_reader, matrice_description_line);
-      matrice_description << matrice_description_line << std::endl;
+  m_matrice_C->dimension = matrices_dimension;
+
+  if (execution_type == "S") {
+    serial_multiplication();
+    exit(0x0);
+  }
+
+  else if (execution_type == "C") {
+    int thread;
+    std::thread thread_handler[m_dimension];
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    for (thread = 0x0; thread < m_dimension; thread++) {
+      thread_handler[thread] = std::thread(&Matrice_multiplication::parallel_multiplication, this, thread);
     }
-  }
 
-  matrice_description_reader.close();
+    for (thread = 0x0; thread < m_dimension; thread++) {
+      thread_handler[thread].join();
+    }
 
-  return matrice_description;
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+
+    std::cout << "Execution time - " << duration << std::endl;
+
+    exit(0x0);
+ }
+
 }
 
-void Matrice_factory::create_matrice(std::stringstream matrice_blueprint) {
-  int i;
-  struct matrice * matrice;
 
-   matrice->matrice = new int * [matrice->row_length];
+/* void Matrice_multiplication::timmer() { */
+/*   auto start = std::chrono::high_resolution_clock::now(); */
+/*   parallel_multiplication(); */
+/*   auto end = std::chrono::high_resolution_clock::now(); */
+/*  */
+/*  */
+/*   auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start); */
+/*   std::cout << "Time taken by function: " << duration.count() << " microseconds" << std::endl; */
+/* } */
 
-  for (i = 0x0; i < matrice->row_length; i++) {
-    matrice->matrice[i] = new int [matrice->row_length];
-  }
-}
-
-void Matrice_factory::fill_matrice(struct matrice * matrice, int seed,
-                                         int max_number_on_matrice) {
+void Matrice_multiplication::output_matrice() {
   int i;
   int j;
 
-  srand(seed);
+  std::ofstream write_matrice;
+  std::stringstream data;
+  std::stringstream output_matrice;
 
-  for (i = 0x0; i < matrice->row_length; i++) {
-    for (j = 0x0; j < matrice->column_length; j++) {
-       matrice->matrice[i][j] = rand() % max_number_on_matrice;
+  output_matrice << "result_matrice_" << m_dimension << "x" << m_dimension << ".txt";
+
+  write_matrice.open(output_matrice.str());
+
+  for (i = 0x0; i <  m_dimension; i++) {
+    for (j = 0x0; j < m_dimension; j++) {
+      data << m_matrice_C->matrice[i][j] << " ";
     }
+    data << std::endl;
   }
+
+  write_matrice << data.str();
+
+  write_matrice.close();
 }
 
-void Matrice_factory::show_matrice(struct matrice * matrice) {
+std::stringstream Matrice_multiplication::read_matrice(std::string file_path) {
+  std::ifstream matrice_reader;
+  std::string matrice_line;
+  std::stringstream matrice_blueprint;
+
+  matrice_reader.open(file_path);
+
+  if (matrice_reader.is_open()) {
+    while (matrice_reader) {
+      std::getline(matrice_reader, matrice_line);
+      matrice_blueprint << matrice_line << std::endl;
+    }
+  }
+
+  matrice_reader.close();
+
+  return matrice_blueprint;
+}
+
+
+void Matrice_multiplication::parallel_multiplication(int rank) {
+
+  int i;
+  int j;
+  int k;
+
+  int start;
+  int end;
+
+  start = rank;
+  end = start + 0x1;
+
+  for (i = start; i < end; i++) {
+    for (j = 0x0; j < m_dimension; j++) {
+      long long sum = 0x0;
+      for (k = 0x0; k < m_dimension; k++) {
+        sum += m_matrice_A->matrice[i][k] * m_matrice_B->matrice[k][j];
+      }
+      m_matrice_C->matrice[i][j] = sum;
+    }
+  }
+
+}
+
+void Matrice_multiplication::fill_matrice(std::stringstream matrice_blueprint, struct matrice * matrice) {
   int i;
   int j;
 
-  for (i = 0x0; i < matrice->row_length; i++) {
-    for (j = 0x0; j < matrice->column_length; j++) {
+  matrice_blueprint >> matrice->dimension;
+  matrice_blueprint >> matrice->dimension;
+
+   for (i = 0x0; i < matrice->dimension; i++) {
+     for (j = 0x0; j < matrice->dimension; j++) {
+       matrice_blueprint >> matrice->matrice[i][j];
+     }
+   }
+}
+
+struct matrice * Matrice_multiplication::memory_allocation(struct matrice * matrice) {
+   int i;
+
+   matrice = new struct matrice;
+
+   matrice->matrice = new long long * [m_dimension];
+
+   for (i = 0x0; i < m_dimension; i++) {
+     matrice->matrice[i] = new long long [m_dimension];
+   }
+
+  return matrice;
+ }
+
+
+void Matrice_multiplication::show_matrice(struct matrice * matrice) {
+  int i;
+  int j;
+
+  for (i = 0x0; i < matrice->dimension; i++) {
+    for (j = 0x0; j < matrice->dimension; j++) {
       std::cout << "[" << matrice->matrice[i][j] << "]";
     }
     std::cout << std::endl;
   }
+}
+
+
+void Matrice_multiplication::serial_multiplication() {
+	int i;
+	int j;
+	int k;
+
+
+  for (i = 0x0; i < m_dimension; i++) {
+    for (j = 0x0; j < m_dimension; j++) {
+      long long sum = 0;
+      for (k = 0x0; k < m_dimension; k++) {
+        sum += m_matrice_A->matrice[i][k] * m_matrice_B->matrice[k][j];
+      }
+      m_matrice_C->matrice[i][j] = sum;
+    }
+  }
+
 }
 
 void parse_user_input(int argc, int matrices_dimension, std::string execution_type) {
@@ -91,7 +225,7 @@ void parse_user_input(int argc, int matrices_dimension, std::string execution_ty
   }
 
   if ((execution_type != "S") && (execution_type != "C")) {
-    std::cout << "Execution type diferent of [C] or [S]" << std::endl;
+    std::cout << "Execution type is diferent from [C] or [S]" << std::endl;
     exit(0x1);
   }
 
@@ -101,25 +235,9 @@ void parse_user_input(int argc, int matrices_dimension, std::string execution_ty
   }
 }
 
-/*
-void matrix_multiplication(std::vector<struct matrice> matrices) {
-  int i;
-  int j;
-  int k;
-
-  int m = matrices.matrice[0]->row_length
-  int n = matrices.matrice[0]->row_length
-  int p = matrices.matrice[0]->row_length
-
-  for (i = 0x0; i < m; i++) {
-    for (j = 0x0; j < n; j++) {
-      for (k = 0x0; k < p; k++) {
-        matrix3[i][j] += matrix1[k][j] * matrix2[i][k];
-      }
-    }
-  }
+void sample(int num, int n) {
+  std::cout << "thread - " << num  << " " << n << std::endl;
 }
-*/
 
 int main(int argc, char const ** argv) {
 
@@ -127,22 +245,9 @@ int main(int argc, char const ** argv) {
   int matrices_dimension = atoi(argv[0x1]);
   std::string execution_type = argv[0x2];
 
+  /* parse_user_input(argc, matrices_dimension, execution_type); */
 
-  parse_user_input(argc, matrices_dimension, execution_type);
-
-  Matrice_factory factory = Matrice_factory();
-  /* factory.create_matrice(&matrix1); */
-  /* factory.fill_matrice(&matrix1, 0x223, 30); */
-
-
-  /* factory.matrices.push_back(matrix1); */
-
-  /* factory.show_matrice(&factory.matrices[0]); */
-  factory.read_matrice_description("./matrices/A4x4.txt");
-
-  std::cout << execution_type << std::endl;
-
-  /* matrix_multiplication(factory.matrices); */
+  Matrice_multiplication factory = Matrice_multiplication(matrices_dimension, execution_type);
 
 	return 0x0;
 }
