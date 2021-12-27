@@ -1,8 +1,10 @@
 #!/usr/bin/bash
 
-serial_src='serial.cpp'
-parallel_src='parallel.cpp'
-compile_flags='-std=c++11 -Wall -pedantic -lpthread'
+matrices_multiplication_src='matrices_multiplication.cpp'
+compile_flags=' -Wall -pedantic -lpthread'
 
-g++ ${serial_src} -o parallel ${compile_flags}
-./parallel
+g++ ${matrices_multiplication_src} -o matrices_multiplication ${compile_flags}
+./matrices_multiplication 4  C
+
+# g++ sample.cpp -o sample ${compile_flags} -std=c++11 -pthread
+# ./sample
