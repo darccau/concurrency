@@ -27,6 +27,37 @@ class Linked_list {
 
 };
 
+Linked_list::Linked_list() {
+  m_head = create_node(0x0);
+  m_chain = NULL;
+  m_head->next_node = m_chain;
+}
+
+struct node * Linked_list::create_node(int data) {
+  struct node * new_node = new struct node;
+  new_node->data = data;
+  new_node->next_node = NULL;
+
+  return new_node;
+}
+
+void Linked_list::add(int data) {
+  struct node * new_node = create_node(data);
+
+  if (m_chain == NULL) {
+    m_chain = new_node;
+    m_head->next_node = m_chain;
+    return;
+  }
+
+  m_chain = m_head->next_node;
+  while (m_chain->next_node != NULL) {
+    m_chain = m_chain->next_node;
+  }
+
+  m_chain->next_node = new_node;
+  m_length++;
+}
 
 struct node * Linked_list::pop() {
   struct node * removed_node;
@@ -72,6 +103,21 @@ void Linked_list::display() {
 
 
 int main (void) {
+  Linked_list list = Linked_list();
+  list.add(0xa);
+  list.add(0xb);
+  list.add(0xc);
+  list.add(0xd);
+  list.add(0xe);
+  list.add(0xf);
+
+  list.pop();
+  list.pop();
+  list.pop();
+
+  list.search(0xb);
+
+  list.display();
 
   return 0x0;
 }
