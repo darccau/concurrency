@@ -1,36 +1,71 @@
 #include <iostream>
+#include <thread>
+#include <mutex>
 
   struct node {
   int data;
   struct node * next_node;
 };
 
-/* add templte */
+/* insert templte */
 class Linked_list {
 
   private:
   struct node * m_head;
   struct node * m_chain;
-  /* threads do tipo B realizam buscas na list
-     threads do tipo I realizam isercao de itens no final da lista
-     threads do tipo R reliza remocao no final da lista */
-  /* struct threads */
+  std::thread * m_threads_B;
+  std::thread * m_threads_I;
+  std::thread * m_threads_R;
+
   int m_length;
 
   public:
-  Linked_list();
+  Linked_list(int thread_B_size, int thread_I_size, int threads_R_size);
   struct node * create_node(int data);
-  void add(int data);
+  void insert(int data);
   struct node * pop();
   bool search(int target);
   void display();
+  void sample(int thread);
 
 };
 
-Linked_list::Linked_list() {
+void Linked_list::sample(int thread) {
+  std::cout << "hello im - " << thread << std::endl;
+}
+
+Linked_list::Linked_list(int threads_B_size, int threads_I_size, int threads_R_size) {
+  int thread;
   m_head = create_node(0x0);
   m_chain = NULL;
   m_head->next_node = m_chain;
+
+
+  m_threads_B = new std::thread [threads_B_size];
+  m_threads_I = new std::thread [threads_I_size];
+  m_threads_R = new std::thread [threads_R_size];
+
+  for (thread = 0x0; thread < threads_I_size; thread++) {
+    m_threads_I[thread] = std::thread(&Linked_list::insert, this, thread);
+  }
+  for (thread = 0x0; thread < threads_I_size; thread++) {
+    m_threads_I[thread].join();
+  }
+
+  for (thread = 0x0; thread < threads_B_size; thread++) {
+    m_threads_I[thread] = std::thread(&Linked_list::search, this, thread);
+  }
+  for (thread = 0x0; thread < threads_B_size; thread++) {
+    m_threads_I[thread].join();
+  }
+
+  for (thread = 0x0; thread < threads_R_size; thread++) {
+    m_threads_I[thread] = std::thread(&Linked_list::pop, this);
+  }
+  for (thread = 0x0; thread < threads_R_size; thread++) {
+    m_threads_I[thread].join();
+  }
+
 }
 
 struct node * Linked_list::create_node(int data) {
@@ -41,7 +76,7 @@ struct node * Linked_list::create_node(int data) {
   return new_node;
 }
 
-void Linked_list::add(int data) {
+void Linked_list::insert(int data) {
   struct node * new_node = create_node(data);
 
   if (m_chain == NULL) {
@@ -102,20 +137,16 @@ void Linked_list::display() {
 
 
 
-int main (void) {
-  Linked_list list = Linked_list();
-  list.add(0xa);
-  list.add(0xb);
-  list.add(0xc);
-  list.add(0xd);
-  list.add(0xe);
-  list.add(0xf);
+int main (int argc, char ** argv) {
+  int threads_B_number;
+  int threads_I_number;
+  int threads_R_number;
 
-  list.pop();
-  list.pop();
-  list.pop();
+  threads_B_number = atoi(argv[0x1]);
+  threads_I_number = atoi(argv[0x2]);
+  threads_R_number = atoi(argv[0x3]);
 
-  list.search(0xb);
+  Linked_list list = Linked_list(threads_B_number, threads_I_number, threads_R_number);
 
   list.display();
 
