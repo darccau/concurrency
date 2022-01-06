@@ -1,18 +1,20 @@
 #include <iostream>
 #include <thread>
 #include <mutex>
+#include <condition_variable>
 
-  struct node {
+struct node {
   int data;
   struct node * next_node;
 };
 
-/* insert templte */
 class Linked_list {
 
   private:
   struct node * m_head;
   struct node * m_chain;
+  int m_counter;
+  std::mutex m_mutex;
   std::thread * m_threads_B;
   std::thread * m_threads_I;
   std::thread * m_threads_R;
@@ -26,16 +28,13 @@ class Linked_list {
   struct node * pop();
   bool search(int target);
   void display();
-  void sample(int thread);
 
 };
 
-void Linked_list::sample(int thread) {
-  std::cout << "hello im - " << thread << std::endl;
-}
-
 Linked_list::Linked_list(int threads_B_size, int threads_I_size, int threads_R_size) {
-  int thread;
+  int i;
+  int j;
+  m_counter = 0x0;
   m_head = create_node(0x0);
   m_chain = NULL;
   m_head->next_node = m_chain;
@@ -45,25 +44,26 @@ Linked_list::Linked_list(int threads_B_size, int threads_I_size, int threads_R_s
   m_threads_I = new std::thread [threads_I_size];
   m_threads_R = new std::thread [threads_R_size];
 
-  for (thread = 0x0; thread < threads_I_size; thread++) {
-    m_threads_I[thread] = std::thread(&Linked_list::insert, this, thread);
-  }
-  for (thread = 0x0; thread < threads_I_size; thread++) {
-    m_threads_I[thread].join();
+  for (i = 0x0; i < threads_I_size; i++) {
+    m_threads_I[i] = std::thread(&Linked_list::insert, this, m_counter++);
   }
 
-  for (thread = 0x0; thread < threads_B_size; thread++) {
-    m_threads_I[thread] = std::thread(&Linked_list::search, this, thread);
-  }
-  for (thread = 0x0; thread < threads_B_size; thread++) {
-    m_threads_I[thread].join();
+  for (j = 0x0; j < threads_I_size; j++) {
+    m_threads_I[j].join();
   }
 
-  for (thread = 0x0; thread < threads_R_size; thread++) {
-    m_threads_I[thread] = std::thread(&Linked_list::pop, this);
+  for (i = 0x0; i < threads_B_size; i++) {
+    m_threads_I[i] = std::thread(&Linked_list::search, this, m_counter++);
   }
-  for (thread = 0x0; thread < threads_R_size; thread++) {
-    m_threads_I[thread].join();
+  for (j = 0x0; j < threads_B_size; j++) {
+    m_threads_I[j].join();
+  }
+
+  for (i = 0x0; i < threads_R_size; i++) {
+    m_threads_I[i] = std::thread(&Linked_list::pop, this);
+  }
+  for (j = 0x0; j < threads_R_size; j++) {
+    m_threads_I[j].join();
   }
 
 }
@@ -77,6 +77,9 @@ struct node * Linked_list::create_node(int data) {
 }
 
 void Linked_list::insert(int data) {
+
+  m_chain = m_head->next_node;
+
   struct node * new_node = create_node(data);
 
   if (m_chain == NULL) {
@@ -85,16 +88,22 @@ void Linked_list::insert(int data) {
     return;
   }
 
-  m_chain = m_head->next_node;
+  m_mutex.lock();
+
   while (m_chain->next_node != NULL) {
     m_chain = m_chain->next_node;
   }
 
   m_chain->next_node = new_node;
+  std::cout << "[Inserting]" << std::endl;
   m_length++;
+
+
+  m_mutex.unlock();
 }
 
 struct node * Linked_list::pop() {
+
   struct node * removed_node;
 
   m_chain = m_head->next_node;
@@ -110,10 +119,13 @@ struct node * Linked_list::pop() {
 
   m_length--;
 
+  std::cout << "[Poping]" << std::endl;
+
   return removed_node;
 }
 
 bool Linked_list::search(int target) {
+
   m_chain = m_head->next_node;
 
   while (m_chain) {
@@ -122,6 +134,8 @@ bool Linked_list::search(int target) {
     }
     m_chain = m_chain->next_node;
   }
+
+  std::cout << "[Searching]" << std::endl;
 
 return false;
 }
@@ -136,7 +150,6 @@ void Linked_list::display() {
 }
 
 
-
 int main (int argc, char ** argv) {
   int threads_B_number;
   int threads_I_number;
@@ -148,7 +161,8 @@ int main (int argc, char ** argv) {
 
   Linked_list list = Linked_list(threads_B_number, threads_I_number, threads_R_number);
 
-  list.display();
+  /* list.display(); */
 
   return 0x0;
 }
+
