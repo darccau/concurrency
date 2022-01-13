@@ -6,12 +6,10 @@
 #include <mutex>
 #include "../lib/linked_list.h"
 
-class Concurrent_linked_list:  private Linked_list {
+class Concurrent_linked_list: public Linked_list {
 
   private:
   std::mutex m_mutex;
-  Linked_list list;
-
   std::thread * m_threads_B;
   std::thread * m_threads_I;
   std::thread * m_threads_R;
