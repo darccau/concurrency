@@ -19,7 +19,7 @@ class Linked_list {
   Linked_list();
   struct node * create_node(int data);
   void insert(int data);
-  struct node * pop();
+  void remove(int position);
   bool search(int target);
   void display();
 };

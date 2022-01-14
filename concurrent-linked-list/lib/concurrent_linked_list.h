@@ -18,7 +18,7 @@ class Concurrent_linked_list: public Linked_list {
   Concurrent_linked_list(int b_threads_size, int i_threads_size, int r_threads_size);
   void concurrent_insert(int target);
   void concurrent_search(int target);
-  void concurrent_pop(void);
+  void concurrent_remove(int postion);
 
 };
 
