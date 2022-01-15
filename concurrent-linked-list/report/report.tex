@@ -1,0 +1,175 @@
+
+
+% Modelo de artigo para ser utilizado na aula de Latex - PCALL
+% Deverá ser editado apenas a partir da linha 100
+
+%informações do documento
+\documentclass[
+	article,			% indica que é um artigo acadêmico
+	11pt,				% tamanho da fonte
+	oneside,			% para impressão apenas no verso. Oposto a twoside
+	a4paper,			% tamanho do papel.
+	% -- opções do pacote babel --
+	english,			% idioma adicional para hifenização
+	brazil,				% o último idioma é o principal do documento
+	sumario=tradicional
+	]{abntex2}
+
+% ---
+% Pacotes fundamentais
+% ---
+\usepackage{lmodern}			% Usa a fonte Latin Modern
+\usepackage[T1]{fontenc}		% Selecao de codigos de fonte.
+\usepackage[utf8]{inputenc}		% Codificacao do documento (conversão automática dos acentos)
+\usepackage{indentfirst}		% Indenta o primeiro parágrafo de cada seção.
+\usepackage{nomencl} 			% Lista de simbolos
+\usepackage{color}				% Controle das cores
+\usepackage{graphicx}			% Inclusão de gráficos
+\usepackage{microtype} 			% para melhorias de justificação
+% ---
+
+% Pacotes adicionais, usados apenas no âmbito do Modelo Canônico do abnteX2
+% ---
+\usepackage{lipsum}				% para geração de dummy text
+
+% Pacotes de citações
+% ---
+\usepackage[brazilian,hyperpageref]{backref}	 % Paginas com as citações na bibl
+\usepackage[alf]{abntex2cite}	% Citações padrão ABNT
+% ---
+% Configurações do pacote backref
+% Usado sem a opção hyperpageref de backref
+\renewcommand{\backrefpagesname}{Citado na(s) página(s):~}
+% Texto padrão antes do número das páginas
+\renewcommand{\backref}{}
+% Define os textos da citação
+\renewcommand*{\backrefalt}[4]{
+	\ifcase #1 %
+		Nenhuma citação no texto.%
+	\or
+		Citado na página #2.%
+	\else
+		Citado #1 vezes nas páginas #2.%
+	\fi}%
+% ---
+% Configurações de aparência do PDF final
+% alterando o aspecto da cor azul
+\definecolor{blue}{RGB}{41,5,195}
+
+% informações do PDF
+\makeatletter
+\hypersetup{
+     	%pagebackref=true,
+		pdftitle={\@title},
+		pdfauthor={\@author},
+    	pdfsubject={Modelo de artigo científico com abnTeX2},
+	    pdfcreator={LaTeX with abnTeX2},
+		pdfkeywords={abnt}{latex}{abntex}{abntex2}{atigo científico},
+		colorlinks=true,       		% false: boxed links; true: colored links
+    	linkcolor=blue,          	% color of internal links
+    	citecolor=blue,        		% color of links to bibliography
+    	filecolor=magenta,      		% color of file links
+		urlcolor=blue,
+		bookmarksdepth=4
+}
+\makeatother
+% ---
+% compila o indice
+% ---
+\makeindex
+% ---
+% Altera as margens padrões
+% ---
+\setlrmarginsandblock{3cm}{3cm}{*}
+\setulmarginsandblock{3cm}{3cm}{*}
+\checkandfixthelayout
+% ---
+% ---
+% Espaçamentos entre linhas e parágrafos
+% ---
+% O tamanho do parágrafo é dado por:
+\setlength{\parindent}{1.3cm}
+
+% Controle do espaçamento entre um parágrafo e outro:
+\setlength{\parskip}{0.2cm}  % tente também \onelineskip
+
+% Espaçamento simples
+\SingleSpacing
+
+% ---
+% ---
+% Informações de dados para CAPA e FOLHA DE ROSTO
+% ---
+\titulo{Trabalho de Programacao Concorrente \\
+Lista Encadeada}
+\autor{Eduardo Souza Paixão}
+\local{Brasil}
+\data{}
+% ---
+
+\ifthenelse{\equal{\ABNTEXisarticle}{true}}{%
+\renewcommand{\maketitlehookb}{}
+}{}
+
+% ----
+% Início do documento
+% ----
+\begin{document}
+
+% Retira espaço extra obsoleto entre as frases.
+\frenchspacing
+
+\maketitle
+
+
+\section*{Introdução}
+
+A fim de praticar os conceitos e mecanismos de sincronização expostos
+durante o recorrer da disciplina, será apresentada a implementação da
+estrutura de dados "lista encadeada" de forma concorrente, utilizando a
+linguagem \textit{C++}.
+
+\section*{Descrição do problema}
+
+A lista encadeada consiste em uma sequencia de nós encadeados formando
+uma lista, estes nós são compostos por um dado e um ponteiro contendo a
+referência de um proximo nó. As operações realizadas por essa lista são
+as seguintes:
+
+Dentre os mecanismos de sincronização apresentados em aula, foi escolhido o
+metodo de exclusão mutua para efetuar a sincronização entre as threads. No
+\textit{C++} essa mecanismo pode ser utilizado por meio da biblioteca
+mutex. Entretanto, foi utilizado uma abstracao desse conceito por meio
+do "lock\_guard" que habilita a exclusão.
+
+\begin{itemize}
+  \item{\textbf{insert}}: Insere um nó no final da lista.
+
+  \item{\textbf{remove}}: Remove um nó se presente em uma posição determinada.
+
+  \item{\textbf{search}}: Busca um nó na lista.
+\end{itemize}
+
+De acordo com as especificações do projeto, foram estipulados tipos de
+threads para cada uma das operações supracitadas.
+
+\subsection{insert}
+% std::lock_guard<std::mutex> lock(m_mutex);
+\subsection{remove}
+% std::lock_guard<std::mutex> lock(m_mutex);
+
+\subsection{search}
+% std::lock_guard<std::mutex> lock(m_mutex);
+
+
+
+\section*{Conclusao}
+\addcontentsline{toc}{section}{Uso de threads}
+A implementacao da estrutura proposta de forma concorrente me fez
+perceber que as implicacoes da programacao concorrente, como race
+conditions em lugares inesperados falsos positivos em relacao a
+sincronização de threads dentre outras questoes que me farao estar
+atento ao programar de forma concorrente.
+
+%Final do Documento
+\end{document}
