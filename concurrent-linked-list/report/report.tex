@@ -100,8 +100,7 @@
 % ---
 % Informações de dados para CAPA e FOLHA DE ROSTO
 % ---
-\titulo{Trabalho de Programacao Concorrente \\
-Lista Encadeada}
+\titulo{Trabalho de Programação Concorrente}
 \autor{Eduardo Souza Paixão}
 \local{Brasil}
 \data{}
@@ -122,54 +121,82 @@ Lista Encadeada}
 \maketitle
 
 
-\section*{Introdução}
+\section{Introdução}
 
-A fim de praticar os conceitos e mecanismos de sincronização expostos
-durante o recorrer da disciplina, será apresentada a implementação da
-estrutura de dados "lista encadeada" de forma concorrente, utilizando a
-linguagem \textit{C++}.
+A fim de praticar os conceitos expostos durante o decorrer da disciplina, será
+apresentada a implementação da estrutura de dados lista encadeada de forma
+concorrente, utilizando a linguagem \textit{C++}.
 
-\section*{Descrição do problema}
+\section{Descrição do problema}
 
-A lista encadeada consiste em uma sequencia de nós encadeados formando
-uma lista, estes nós são compostos por um dado e um ponteiro contendo a
-referência de um proximo nó. As operações realizadas por essa lista são
-as seguintes:
+A estrutura a ser implementada consiste em uma sequência de nós
+encadeados formando uma lista, estes nós são compostos por um dado, e
+um ponteiro contendo a referência para um nó seguinte.
 
-Dentre os mecanismos de sincronização apresentados em aula, foi escolhido o
-metodo de exclusão mutua para efetuar a sincronização entre as threads. No
-\textit{C++} essa mecanismo pode ser utilizado por meio da biblioteca
-mutex. Entretanto, foi utilizado uma abstracao desse conceito por meio
-do "lock\_guard" que habilita a exclusão.
+De acordo com as especificações do projeto, a lista deverá executar as
+operações de inserção, remoção e busca, utilizando grupos de threads
+específicos para cada uma das operações. Bem como mecanismos
+sincronização, visando eliminar os problemas de starvation e deadlock em
+consequência do compartilhamento de recurso pelas threads.
 
-\begin{itemize}
-  \item{\textbf{insert}}: Insere um nó no final da lista.
+\section{Implementação}
+Para a implementação, foi criada uma classe ``Linked\_list'' reponsável por
+implementar uma lista encadeada simples. Em sequida foi desenvolvida a classe
+``Concurrent\_linked\_list'' que herda Linked\_list e encapsula seus
+métodos aplicando as threads e os mecanismos de sincornização.
 
-  \item{\textbf{remove}}: Remove um nó se presente em uma posição determinada.
+A sincronizção das threads se deu pelo uso do método de exclusão mutua,
+que foi utilizado por meio da classe ``lock\_guard'' que atua
+protegendo uma região crítica até o final do seu escopo de execução.
+Assim, evitando problemas como deadlock e starvation.
 
-  \item{\textbf{search}}: Busca um nó na lista.
-\end{itemize}
+\subsection{Inserção}
 
-De acordo com as especificações do projeto, foram estipulados tipos de
-threads para cada uma das operações supracitadas.
+Esta operação se dá por meio da adição de um nó no final da lista.
+Para evitar que duas threads possam realizar esta operação ao mesmo tempo
+foi feito o uso do lock\_guard, restringindo o acesso a esse metodo a
+uma threads por vez.
 
-\subsection{insert}
-% std::lock_guard<std::mutex> lock(m_mutex);
-\subsection{remove}
-% std::lock_guard<std::mutex> lock(m_mutex);
+\begin{figure}[!h]
+\includegraphics[width=10cm]{img/concurrency-insertion-pic.png}
+\centering
+\end{figure}
 
-\subsection{search}
-% std::lock_guard<std::mutex> lock(m_mutex);
+\subsection{Remoção}
+
+Ao passar um número aleatório para esta função, se este número
+representar a posição de um elemento na lista, este elemento será
+removido. Semelhante ao caso da inserção, neste método também foi
+aplicado o lock\_guard.
+
+\begin{figure}[!h]
+\includegraphics[width=10cm]{img/concurrency-remotion-pic.png}
+\centering
+\end{figure}
+
+\subsection{Busca}
+Essa operação consiste na busca por um determinado elemento no campo
+de dados dos nós da lista encadeada. Diferentemente dos dos métodos
+anteriores, a busca não altera o estado da lista, fazendo com que não
+seja necessário aplicar nenhuma restrição nas threads que executrão
+esta função.
+
+\begin{figure}[!h]
+\includegraphics[width=10cm]{./img/concurrentcy-search-pic.png}
+\centering
+\end{figure}
 
 
+\section{Considerações}
+Eu não entendi bem, como funcionaría a política de justiça descrita
+entre as threads dos grupos inserção e remoção na descrição do projeto,
+mas pelo que eu pude apurar, ambos os grupos de threads estão cumprindo
+suas funções sem interferir umas nas outras.
 
-\section*{Conclusao}
-\addcontentsline{toc}{section}{Uso de threads}
-A implementacao da estrutura proposta de forma concorrente me fez
-perceber que as implicacoes da programacao concorrente, como race
-conditions em lugares inesperados falsos positivos em relacao a
-sincronização de threads dentre outras questoes que me farao estar
-atento ao programar de forma concorrente.
+No mais, foi bastante interessante ver como os mecanismos de
+sincronização funcionam e como a disputadas das threads por recursos
+compartilhados pode gerar incosistencias graves no funcionamento de um
+software.
 
-%Final do Documento
+
 \end{document}
