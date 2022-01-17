@@ -1,0 +1,19 @@
+[Alteração]
+
+Para alterar o número de threads em um uso, vá até o arquivo
+src/main.cpp e altere o valor das constantes.
+
+  INSERTION_THREADS_NUMBER
+  REMOTION_THREADS_NUMBER
+  SEARCH_THREADS_NUMBER
+
+nota:
+Foi fixado no código que as threads de remoção só removerão os nós na
+posição 0 para fins test.
+
+[Execução]
+O arquivo run.sh contem o código responsável por compilar e executar a
+lista concorrent
+
+bash run.sh
+
